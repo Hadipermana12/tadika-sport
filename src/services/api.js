@@ -1,0 +1,4 @@
+// API service functions will go here
+export const fetchData = async () => {
+    // implementation
+};
