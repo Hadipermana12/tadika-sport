@@ -1,32 +1,45 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatCurrency';
 import useStore from '../../store/useStore';
 
 const ProductCard = ({ product }) => {
-    const addToCart = useStore((state) => state.addToCart);
+    const { addToCart } = useStore();
+    const navigate = useNavigate();
     const [variant, setVariant] = useState('home'); // 'home' or 'away'
+
+    // Default variant logic
+    const hasVariants = product.variants && Object.keys(product.variants).length > 0;
+    const defaultVariant = hasVariants && product.variants.home ? product.variants.home.image : product.image;
+    
+    const currentStock = variant === 'home' ? (product.stock_home || 0) : (product.stock_away || 0);
 
     const handleAddToCart = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         // Add to cart with current selected variant
         addToCart({
             ...product,
-            image: product.variants[variant].image,
+            image: imageUrl,
             name: `${product.name} (${variant === 'home' ? 'Home' : 'Away'})`,
             variant: variant,
             size: 'M'
         });
     };
 
-    const currentVariant = product.variants[variant];
+    const currentVariant = product.variants && product.variants[variant] 
+        ? product.variants[variant] 
+        : (product.variants && product.variants.home) || null;
+    
+    // Safety check for image, fallback to original product.image if no variants exist
+    const imageUrl = (currentVariant && currentVariant.image) ? currentVariant.image : (product.image || '');
 
     return (
         <div className="group block bg-white/5 border border-white/5 rounded-2xl overflow-hidden hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(37,99,235,0.15)] transition-all duration-300">
             <Link to={`/product/${product.id}`} state={{ defaultVariant: variant }} className="block aspect-[4/5] overflow-hidden relative">
                 <img
-                    src={currentVariant.image}
+                    src={imageUrl}
                     alt={`${product.name} ${variant}`}
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                 />
@@ -34,7 +47,12 @@ const ProductCard = ({ product }) => {
 
                 <button
                     onClick={handleAddToCart}
-                    className="absolute bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full translate-y-20 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-blue-500 hover:scale-110 shadow-lg z-20"
+                    disabled={currentStock <= 0}
+                    className={`absolute bottom-4 right-4 text-white p-3 rounded-full translate-y-20 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 shadow-lg z-20 ${
+                        currentStock > 0 
+                            ? 'bg-blue-600 hover:bg-blue-500 hover:scale-110' 
+                            : 'bg-gray-600 cursor-not-allowed hidden'
+                    }`}
                 >
                     <ShoppingCart className="w-5 h-5" />
                 </button>
@@ -70,8 +88,13 @@ const ProductCard = ({ product }) => {
                     </button>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-2">
                     <span className="text-xl font-bold text-white">{formatCurrency(product.price)}</span>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-md ${
+                        currentStock > 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                    }`}>
+                        {currentStock > 0 ? `${currentStock} in stock` : 'Out of Stock'}
+                    </span>
                 </div>
             </div>
         </div>

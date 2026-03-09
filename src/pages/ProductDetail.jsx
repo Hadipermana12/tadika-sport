@@ -28,13 +28,17 @@ const ProductDetail = () => {
 
     if (!product) return <div className="text-white text-center py-20">Product not found</div>;
 
-    const currentVariant = product.variants[variant];
+    const currentVariant = product?.variants?.[variant];
+    const imageUrl = currentVariant?.image || product?.image;
+    const currentStock = variant === 'home' ? (product.stock_home || 0) : (product.stock_away || 0);
 
     const handleAddToCart = () => {
         if (!selectedSize) return alert('Please select a size');
+        if (currentStock <= 0) return alert('This product is out of stock');
+        
         addToCart({
             ...product,
-            image: currentVariant.image,
+            image: imageUrl,
             name: `${product.name} (${variant === 'home' ? 'Home' : 'Away'})`,
             variant: variant,
             size: selectedSize
@@ -52,7 +56,7 @@ const ProductDetail = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div className="aspect-[4/5] rounded-3xl overflow-hidden bg-white/5 relative group">
                     <img
-                        src={currentVariant.image}
+                        src={imageUrl}
                         alt={`${product.name} ${variant}`}
                         className="w-full h-full object-cover transition-all duration-500"
                     />
@@ -80,10 +84,19 @@ const ProductDetail = () => {
                     <div className="text-lg font-semibold text-gray-300 mb-6 capitalize">{variant} Kit</div>
 
                     <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                        {currentVariant.description || product.description || "Experience the best quality jersey with breathable fabric and authentic design, perfect for match days or casual wear."}
+                        {(currentVariant && currentVariant.description) || product.description || "Experience the best quality jersey with breathable fabric and authentic design, perfect for match days or casual wear."}
                     </p>
 
-                    <div className="text-3xl font-bold text-white mb-8">{formatCurrency(product.price)}</div>
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="text-3xl font-bold text-white">{formatCurrency(product.price)}</div>
+                        <div className={`px-3 py-1 rounded-full text-sm font-bold border ${
+                            currentStock > 0 
+                                ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                                : 'bg-red-500/10 text-red-500 border-red-500/20'
+                        }`}>
+                            {currentStock > 0 ? `${currentStock} Units Available` : 'Out of Stock'}
+                        </div>
+                    </div>
 
                     <div className="mb-8">
                         <div className="text-sm text-gray-400 font-bold mb-3 uppercase">Select Size</div>
@@ -105,15 +118,18 @@ const ProductDetail = () => {
 
                     <button
                         onClick={handleAddToCart}
-                        disabled={!selectedSize}
-                        className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${isAdded
-                                ? 'bg-green-600 text-white'
-                                : selectedSize
-                                    ? 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/30'
-                                    : 'bg-white/10 text-gray-500 cursor-not-allowed'
+                        disabled={!selectedSize || currentStock <= 0}
+                        className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${
+                            currentStock <= 0
+                                ? 'bg-red-500/20 text-red-500 border border-red-500/30 cursor-not-allowed'
+                                : isAdded
+                                    ? 'bg-green-600 text-white'
+                                    : selectedSize
+                                        ? 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/30'
+                                        : 'bg-white/10 text-gray-500 cursor-not-allowed'
                             }`}
                     >
-                        {isAdded ? <><Check /> Added to Cart</> : <><ShoppingCart /> Add to Cart</>}
+                        {currentStock <= 0 ? 'Out of Stock' : isAdded ? <><Check /> Added to Cart</> : <><ShoppingCart /> Add to Cart</>}
                     </button>
                 </div>
             </div>

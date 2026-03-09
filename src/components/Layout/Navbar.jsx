@@ -7,7 +7,7 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const location = useLocation();
-    const cart = useStore((state) => state.cart);
+    const { cart, isAdmin } = useStore();
 
     const cartItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -23,6 +23,10 @@ const Navbar = () => {
         { path: "/home", label: "Home" },
         { path: "/category", label: "Shop" },
     ];
+
+    if (isAdmin) {
+        navLinks.push({ path: "/admin/dashboard", label: "Admin" });
+    }
 
     const isActive = (path) => location.pathname === path;
 

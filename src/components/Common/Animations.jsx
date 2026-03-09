@@ -31,7 +31,7 @@ export const StaggerContainer = ({ children, className = "", staggerDelay = 0.1 
     <motion.div
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, margin: "-50px" }}
+        viewport={{ once: true, amount: 0.1 }}
         variants={{
             hidden: { opacity: 0 },
             show: {

@@ -8,17 +8,63 @@ const Checkout = () => {
     const { cart, clearCart } = useStore();
     const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const [isProcessing, setIsProcessing] = useState(false);
+    
+    // Form state
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        address: '',
+        city: 'Jakarta', // Default or add input for it
+        postalCode: '12345', // Default or add input for it
+        phoneNumber: ''
+    });
 
-    const handleSubmit = (e) => {
+    const handleInputChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsProcessing(true);
-        // Simulate API call
-        setTimeout(() => {
+
+        const orderData = {
+            customer: formData,
+            items: cart.map(item => ({
+                productId: item.id,
+                name: item.name,
+                variant: item.variant,
+                size: item.size,
+                quantity: item.quantity,
+                price: item.price
+            })),
+            total: total
+        };
+
+        try {
+            const response = await fetch('http://localhost:5000/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderData),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to place order');
+            }
+
+            const data = await response.json();
+            
             clearCart();
             setIsProcessing(false);
-            alert('Order placed successfully!');
-            navigate('/home');
-        }, 2000);
+            navigate(`/invoice/${data.orderId}`);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            setIsProcessing(false);
+            alert('Failed to place order. Please try again.');
+        }
     };
 
     if (cart.length === 0) return null;
@@ -32,13 +78,53 @@ const Checkout = () => {
                     <h2 className="text-xl font-bold text-white mb-6">Shipping Details</h2>
                     <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <input required type="text" placeholder="First Name" className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" />
-                            <input required type="text" placeholder="Last Name" className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" />
+                            <input 
+                                required 
+                                name="firstName"
+                                value={formData.firstName}
+                                onChange={handleInputChange}
+                                type="text" 
+                                placeholder="First Name" 
+                                className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" 
+                            />
+                            <input 
+                                required 
+                                name="lastName"
+                                value={formData.lastName}
+                                onChange={handleInputChange}
+                                type="text" 
+                                placeholder="Last Name" 
+                                className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" 
+                            />
                         </div>
-                        <input required type="email" placeholder="Email Address" className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" />
-                        <input required type="text" placeholder="Address" className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" />
+                        <input 
+                            required 
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            type="email" 
+                            placeholder="Email Address" 
+                            className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" 
+                        />
+                        <input 
+                            required 
+                            name="address"
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            type="text" 
+                            placeholder="Address" 
+                            className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" 
+                        />
 
-                        <input required type="text" placeholder="Phone Number" className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" />
+                        <input 
+                            required 
+                            name="phoneNumber"
+                            value={formData.phoneNumber}
+                            onChange={handleInputChange}
+                            type="text" 
+                            placeholder="Phone Number" 
+                            className="bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 w-full" 
+                        />
                     </form>
                 </div>
 

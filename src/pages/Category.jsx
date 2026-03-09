@@ -1,19 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProductGrid from '../components/Product/ProductGrid';
 import useStore from '../store/useStore';
 
 const Category = () => {
-    const products = useStore((state) => state.products);
+    const { products, fetchProducts } = useStore();
     const [filter, setFilter] = useState('All');
+
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
 
     const categories = ['All', 'Premier League', 'La Liga', 'Serie A'];
 
     const filteredProducts = filter === 'All'
         ? products
-        : products.filter(p => p.category === filter);
-
+        : products.filter(p => p.category && p.category.toLowerCase().trim() === filter.toLowerCase().trim());
+        
     return (
-        <div className="min-h-screen max-w-7xl mx-auto px-6 md:px-8 py-12">
+        <div className="min-h-[60vh] max-w-7xl mx-auto px-6 md:px-8 pb-12 pt-4">
             <h1 className="text-4xl font-black text-white mb-8 tracking-tight">Shop Jerseys</h1>
 
             {/* Filter Tabs */}
@@ -32,7 +36,7 @@ const Category = () => {
                 ))}
             </div>
 
-            <ProductGrid products={filteredProducts} />
+            <ProductGrid key={filter} products={filteredProducts} />
         </div>
     );
 };

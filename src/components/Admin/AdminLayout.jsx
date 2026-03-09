@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import useStore from '../../store/useStore';
 import { Package, Users, Settings, LogOut, LayoutGrid } from 'lucide-react';
 import { useEffect } from 'react';
@@ -20,6 +20,14 @@ const AdminLayout = () => {
 
     if (!isAdmin) return null;
 
+    const location = useLocation();
+
+    const getLinkClass = (path) => {
+        return location.pathname.includes(path) 
+            ? "flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-600/10 text-blue-500 font-bold border border-blue-600/20"
+            : "flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors font-medium";
+    };
+
     return (
         <div className="min-h-screen flex bg-[#050505] text-white font-sans">
             {/* Sidebar */}
@@ -29,16 +37,19 @@ const AdminLayout = () => {
                 </div>
 
                 <nav className="flex-1 space-y-2">
-                    <Link to="/admin/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-600/10 text-blue-500 font-bold border border-blue-600/20">
+                    <Link to="/home" className="flex items-center gap-3 px-4 py-3 rounded-lg text-green-500 hover:bg-green-500/10 transition-colors font-bold mb-4 border border-green-500/20">
+                        <LayoutGrid className="w-5 h-5" /> Go to Store
+                    </Link>
+                    <Link to="/admin/dashboard" className={getLinkClass('/admin/dashboard')}>
                         <LayoutGrid className="w-5 h-5" /> Dashboard
                     </Link>
-                    <Link to="/admin/products" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors font-medium">
+                    <Link to="/admin/products" className={getLinkClass('/admin/products')}>
                         <Package className="w-5 h-5" /> Products
                     </Link>
-                    <Link to="/admin/orders" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors font-medium">
+                    <Link to="/admin/orders" className={getLinkClass('/admin/orders')}>
                         <Users className="w-5 h-5" /> Orders
                     </Link>
-                    <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors font-medium">
+                    <Link to="/admin/settings" className={getLinkClass('/admin/settings')}>
                         <Settings className="w-5 h-5" /> Settings
                     </Link>
                 </nav>

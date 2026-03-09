@@ -3,9 +3,15 @@ import ProductGrid from '../components/Product/ProductGrid';
 import useStore from '../store/useStore';
 import { FadeUp } from '../components/Common/Animations';
 
+import { useEffect } from 'react';
+
 const Home = () => {
-    const products = useStore((state) => state.products);
+    const { products, fetchProducts } = useStore();
     const featuredProducts = products.slice(0, 4);
+
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
 
     return (
         <div className="min-h-screen">
@@ -16,6 +22,9 @@ const Home = () => {
                     <ProductGrid title="Featured Collection" products={featuredProducts} />
                 </FadeUp>
 
+                <FadeUp delay={0.2}>
+                    <ProductGrid title="Best Sellers" products={products.slice(2, 6)} />
+                </FadeUp>
                 <FadeUp delay={0.2}>
                     <section className="py-16 my-8 relative overflow-hidden rounded-3xl group">
                         <div className="absolute inset-0 bg-blue-900/20 backdrop-blur-3xl transition-all duration-700 group-hover:bg-blue-900/30"></div>
@@ -35,9 +44,6 @@ const Home = () => {
                     </section>
                 </FadeUp>
 
-                <FadeUp delay={0.2}>
-                    <ProductGrid title="Best Sellers" products={products.slice(2, 6)} />
-                </FadeUp>
             </div>
         </div>
     );
